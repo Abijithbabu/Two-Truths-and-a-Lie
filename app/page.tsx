@@ -1,65 +1,274 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+
+export default function JoinPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Check if player with same name already exists (rejoin support)
+      const { data: existing } = await supabase
+        .from("players")
+        .select("id, name, score")
+        .ilike("name", trimmed)
+        .single();
+
+      let playerId: string;
+
+      if (existing) {
+        playerId = existing.id;
+      } else {
+        const { data: newPlayer, error: insertErr } = await supabase
+          .from("players")
+          .insert({ name: trimmed, score: 0 })
+          .select("id")
+          .single();
+
+        if (insertErr || !newPlayer) {
+          setError("Failed to join the game. Please try again.");
+          setLoading(false);
+          return;
+        }
+        playerId = newPlayer.id;
+      }
+
+      // Persist player id in session storage
+      sessionStorage.setItem("playerId", playerId);
+      sessionStorage.setItem("playerName", trimmed);
+
+      router.push("/player");
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div
+      className="page-container"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100dvh",
+        padding: "24px",
+      }}
+    >
+      {/* Background blobs */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          overflow: "hidden",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: "-20%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "800px",
+            height: "600px",
+            background:
+              "radial-gradient(ellipse, rgba(139,92,246,0.18) 0%, transparent 70%)",
+            borderRadius: "50%",
+          }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-10%",
+            right: "-10%",
+            width: "500px",
+            height: "500px",
+            background:
+              "radial-gradient(ellipse, rgba(236,72,153,0.12) 0%, transparent 70%)",
+            borderRadius: "50%",
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: "100%",
+          maxWidth: "440px",
+        }}
+        className="animate-fade-in-up"
+      >
+        {/* Logo / Header */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "72px",
+              height: "72px",
+              borderRadius: "20px",
+              marginBottom: "20px",
+              background: "linear-gradient(135deg, #7c3aed, #ec4899)",
+              fontSize: "36px",
+              boxShadow: "0 8px 32px rgba(139,92,246,0.4)",
+            }}
+          >
+            🎭
+          </div>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 900,
+              lineHeight: 1.1,
+              marginBottom: "10px",
+            }}
+          >
+            <span className="gradient-text">Two Truths</span>
+            <br />
+            <span
+              style={{
+                color: "var(--text-secondary)",
+                fontWeight: 700,
+                fontSize: "22px",
+              }}
+            >
+              and a Lie
+            </span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p
+            style={{
+              color: "var(--text-secondary)",
+              fontSize: "15px",
+              marginTop: "8px",
+            }}
+          >
+            The party game for hybrid teams ✨
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Join Card */}
+        <div className="card" style={{ padding: "32px" }}>
+          <h2
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              marginBottom: "6px",
+              color: "var(--text-primary)",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Join the Game
+          </h2>
+          <p
+            style={{
+              color: "var(--text-secondary)",
+              fontSize: "14px",
+              marginBottom: "28px",
+            }}
           >
-            Documentation
+            Enter your name to get started. No sign-up required.
+          </p>
+
+          <form
+            onSubmit={handleJoin}
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "var(--text-secondary)",
+                  marginBottom: "8px",
+                }}
+              >
+                Your Name
+              </label>
+              <input
+                className="input"
+                type="text"
+                placeholder="e.g. Alex, Jamie..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={40}
+                autoFocus
+                autoComplete="off"
+              />
+            </div>
+
+            {error && (
+              <div
+                style={{
+                  background: "rgba(239,68,68,0.1)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  borderRadius: "10px",
+                  padding: "12px 14px",
+                  color: "#f87171",
+                  fontSize: "14px",
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              disabled={!name.trim() || loading}
+              style={{ width: "100%", marginTop: "4px" }}
+            >
+              {loading ? (
+                <>
+                  <div className="spinner" />
+                  Joining...
+                </>
+              ) : (
+                <>🎮 Join Game</>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Admin link */}
+        <div style={{ textAlign: "center", marginTop: "24px" }}>
+          <a
+            href="/admin"
+            style={{
+              color: "var(--text-muted)",
+              fontSize: "13px",
+              textDecoration: "none",
+              transition: "color 0.2s",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--text-secondary)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--text-muted)")
+            }
+          >
+            🔑 Admin Dashboard
           </a>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

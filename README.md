@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎭 Two Truths and a Lie
 
-## Getting Started
+A real-time party game web application for hybrid office events, built with **Next.js**, **TypeScript**, **Tailwind CSS**, and **Supabase**.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+- 🎮 **Instant join** — no sign-up, just enter your name
+- 📝 **Submit questions** — each player writes 2 truths + 1 lie
+- 🗳️ **Live voting** with shuffled statements + 20-second countdown
+- 🎉 **Auto scoring** (+10 pts for correct guesses)
+- 🏆 **Live leaderboard** that updates after every round
+- 🎊 **Confetti animation** on results reveal
+- 🔄 **Rejoin support** — same name reconnects your session
+- 📡 **Real-time** — all screens update instantly via Supabase Realtime
+
+---
+
+## 🚀 Quick Start
+
+### 1. Set up Supabase
+
+1. Go to [supabase.com](https://supabase.com) and create a free project
+2. In the **SQL Editor**, run the entire contents of [`supabase-schema.sql`](./supabase-schema.sql)
+3. In **Project Settings → API**, copy your **Project URL** and **anon public** key
+
+### 2. Configure environment variables
+
+Rename (or copy) `.env.local` and fill in your values:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+### 4. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📄 Pages
 
-## Learn More
+| Route | Description |
+|-------|-------------|
+| `/` | Join page — enter your name to join |
+| `/player` | Player dashboard — submit questions, vote, see results |
+| `/admin` | Admin dashboard — manage rounds, reveal answers |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎮 How to Run a Game Session
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Setup (1 min)
+1. Host opens `/admin`
+2. Share the app URL with all participants (show it on the projector)
+3. Everyone joins at `/`
 
-## Deploy on Vercel
+### Each Round
+1. **Admin** picks a question from the "Submitted Questions" list and clicks **Start Round**
+2. **Admin** clicks **▶ Start Voting** when everyone is ready
+3. **Participants** see the 3 shuffled statements and vote for the lie
+4. **Admin** clicks **⏹ End Voting** (or waits for the 20s timer)
+5. **Admin** clicks **🎉 Reveal Answer** — scores update automatically
+6. Everyone sees confetti + results + updated leaderboard
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Scoring
+- ✅ Correct guess → **+10 points**
+- ❌ Wrong guess → **0 points**
+- 🚫 Nobody guesses correctly → **Question creator gets +10**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ☁️ Deploy on Vercel
+
+1. Push to GitHub
+2. Import project on [vercel.com](https://vercel.com)
+3. Add environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Deploy — done!
+
+---
+
+## 🗄️ Database Schema
+
+```
+players      → id, name, score, joined_at
+questions    → id, player_id, statement_1/2/3, lie_index, status, created_at
+votes        → id, player_id, question_id, selected_index, created_at
+game_state   → id (=1), current_question_id, status
+```
+
+---
+
+## 🛠 Tech Stack
+
+- **Next.js 16** (App Router)
+- **React 19** + **TypeScript**
+- **Tailwind CSS 4**
+- **Supabase** (Postgres + Realtime)
+- **canvas-confetti** (celebration animation)
