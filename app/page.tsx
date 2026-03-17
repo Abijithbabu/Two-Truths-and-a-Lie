@@ -244,30 +244,6 @@ export default function JoinPage() {
             </button>
           </form>
         </div>
-
-        {/* Admin link */}
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <a
-            href="/admin"
-            style={{
-              color: "var(--text-muted)",
-              fontSize: "13px",
-              textDecoration: "none",
-              transition: "color 0.2s",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--text-secondary)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--text-muted)")
-            }
-          >
-            🔑 Admin Dashboard
-          </a>
-        </div>
       </div>
     </div>
   );
